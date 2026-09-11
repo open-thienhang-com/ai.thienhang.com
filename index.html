@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CMA — Charging Management Assistance</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;500;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./components/styles-base.css">
+<link rel="stylesheet" href="./components/styles-rich.css">
+</head>
+<body>
+
+<div class="shell" id="shell">
+
+  <!-- ═══ LEFT PANEL ════════════════════════════════════════ -->
+  <!-- Populated by app.js fetch → left-panel.html           -->
+  <aside class="lp" id="lp"></aside>
+
+  <!-- ═══ CENTER PANEL ══════════════════════════════════════ -->
+  <main class="cp">
+
+    <!-- Council avatar bar (populated by renderCouncilBar) -->
+    <div class="council-bar" id="councilBar"></div>
+
+    <!-- Messages (populated by conversation.js) -->
+    <div class="messages" id="messages"></div>
+
+    <!-- Input bar -->
+    <div class="input-bar">
+      <div class="input-context">
+        <span class="sdot" style="width:4px;height:4px;background:var(--n);box-shadow:0 0 4px var(--n)"></span>
+        <span>Gửi tới <strong style="color:var(--n)">NEXUS</strong> · Dùng <strong style="color:var(--n)">@</strong> để mention agent cụ thể · <strong style="color:var(--n)">/propose</strong> để tạo proposal</span>
+      </div>
+      <div class="input-wrap">
+        <span class="input-pfx">▷</span>
+        <input class="msg-input" id="msgInput" placeholder="Nhập lệnh hoặc câu hỏi cho NEXUS..." autocomplete="off">
+        <div class="input-tools">
+          <button class="itool" onclick="insertPropose()">⬡ Propose</button>
+          <button class="itool" id="cmsToggle" onclick="toggleCMS()">⊞ CMS</button>
+          <button class="itool primary" onclick="sendUserMsg()">Send ↵</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- ═══ CMS PANEL ════════════════════════════════════════ -->
+  <!-- Populated by app.js fetch → cms-panel.html            -->
+  <div class="cms-panel" id="cmsPanel" style="display:none"></div>
+
+</div><!-- .shell -->
+
+<script type="module" src="./components/js/app.js"></script>
+</body>
+</html>

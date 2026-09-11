@@ -1,0 +1,17 @@
+<!-- ═══ CMS PANEL FRAGMENT ════════════════════════════════ -->
+<div class="cms-header">
+  <div>
+    <div class="cms-title">⊞ GHN CMS — Charger Management</div>
+    <div class="cms-url">ghn-cms.vercel.app · OCPP 1.6 · Live</div>
+  </div>
+  <div class="cms-actions">
+    <span class="badge bg-g">LIVE</span>
+    <button class="itool" onclick="reloadCMS()">↺</button>
+    <button class="itool" onclick="toggleCMS()">✕</button>
+  </div>
+</div>
+<div class="cms-loading" id="cmsLoading">
+  <div class="cms-spinner"></div>
+  <div style="font-size:9px;letter-spacing:.15em;text-transform:uppercase">Loading CMS...</div>
+</div>
+<iframe id="cmsFrame" class="cms-iframe" style="display:none" src="" allow="fullscreen"></iframe>
