@@ -50,5 +50,83 @@
 </div><!-- .shell -->
 
 <script type="module" src="./components/js/app.js"></script>
+
+<!-- ═══ HELP OVERLAY ══════════════════════════════════════════ -->
+<div id="helpOverlay" style="
+  position:fixed;inset:0;z-index:10000;
+  background:rgba(10,10,15,.92);backdrop-filter:blur(6px);
+  display:flex;align-items:center;justify-content:center;
+  animation:min 300ms ease both;
+">
+  <div style="
+    width:480px;max-width:90vw;
+    border:1px solid rgba(0,255,136,.25);
+    background:#0f0f1a;
+    clip-path:polygon(0 12px,12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%);
+    position:relative;overflow:hidden;
+  ">
+    <!-- top accent line -->
+    <div style="height:2px;background:linear-gradient(90deg,transparent,#00ff88,transparent);opacity:.6"></div>
+
+    <!-- header -->
+    <div style="padding:20px 24px 14px;border-bottom:1px solid rgba(42,42,58,.8)">
+      <div style="font-family:'Orbitron',monospace;font-size:10px;letter-spacing:.3em;color:rgba(0,255,136,.5);margin-bottom:6px">GHN EV FLEET · CMA v1.0</div>
+      <div style="font-family:'Orbitron',monospace;font-size:18px;font-weight:900;color:#00ff88;text-shadow:0 0 12px #00ff8840;letter-spacing:.1em">Charging Management<br>Assistance</div>
+      <div style="margin-top:8px;font-size:10px;color:#6b7280;letter-spacing:.08em;line-height:1.6">
+        Hệ thống điều phối đa tác nhân AI cho đội xe tải điện GHN — theo dõi SOC, quản lý phiên sạc, và tối ưu lộ trình theo thời gian thực.
+      </div>
+    </div>
+
+    <!-- usage guide -->
+    <div style="padding:18px 24px;display:flex;flex-direction:column;gap:12px">
+
+      <div style="font-size:7px;letter-spacing:.25em;text-transform:uppercase;color:rgba(0,255,136,.45)">// Cách sử dụng</div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+
+        <div style="padding:10px 12px;background:rgba(0,255,136,.04);border:1px solid rgba(0,255,136,.12);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%)">
+          <div style="font-size:8px;letter-spacing:.15em;color:#00ff88;margin-bottom:5px">◈ HỎI NEXUS</div>
+          <div style="font-size:9px;color:#9ca3af;line-height:1.5">Gõ câu hỏi vào ô input → <strong style="color:#e0e0e0">Send</strong>. NEXUS sẽ phân phối tới agents phù hợp và tổng hợp phản hồi.</div>
+        </div>
+
+        <div style="padding:10px 12px;background:rgba(0,212,255,.04);border:1px solid rgba(0,212,255,.12);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%)">
+          <div style="font-size:8px;letter-spacing:.15em;color:#00d4ff;margin-bottom:5px">@ MENTION AGENT</div>
+          <div style="font-size:9px;color:#9ca3af;line-height:1.5">Dùng <strong style="color:#e0e0e0">@Data</strong>, <strong style="color:#e0e0e0">@Fleet</strong>, <strong style="color:#e0e0e0">@Route</strong>… để gửi trực tiếp tới một agent cụ thể.</div>
+        </div>
+
+        <div style="padding:10px 12px;background:rgba(204,68,255,.04);border:1px solid rgba(204,68,255,.12);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%)">
+          <div style="font-size:8px;letter-spacing:.15em;color:#cc44ff;margin-bottom:5px">⬡ TẠO PROPOSAL</div>
+          <div style="font-size:9px;color:#9ca3af;line-height:1.5">Nhấn <strong style="color:#e0e0e0">⬡ Propose</strong> hoặc gõ <strong style="color:#e0e0e0">/propose:</strong> để agents bỏ phiếu và đưa ra quyết định đồng thuận.</div>
+        </div>
+
+        <div style="padding:10px 12px;background:rgba(68,153,255,.04);border:1px solid rgba(68,153,255,.12);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%)">
+          <div style="font-size:8px;letter-spacing:.15em;color:#4499ff;margin-bottom:5px">⊞ MỞ CMS</div>
+          <div style="font-size:9px;color:#9ca3af;line-height:1.5">Nhấn <strong style="color:#e0e0e0">⊞ CMS</strong> để mở bảng điều khiển AMPECO ngay trong giao diện, không cần chuyển tab.</div>
+        </div>
+
+      </div>
+
+      <div style="padding:10px 12px;background:rgba(255,187,0,.04);border:1px solid rgba(255,187,0,.1);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%);display:flex;align-items:center;gap:10px">
+        <span style="font-size:16px">⚙</span>
+        <div style="font-size:9px;color:#9ca3af;line-height:1.5">Nhấn <strong style="color:#ffbb00">Trigger</strong> trên thanh council để kích hoạt agents phân tích tự động bất kỳ lúc nào.</div>
+      </div>
+    </div>
+
+    <!-- dismiss button -->
+    <div style="padding:0 24px 20px;display:flex;justify-content:flex-end">
+      <button onclick="document.getElementById('helpOverlay').style.display='none'" style="
+        height:32px;padding:0 20px;
+        border:1px solid rgba(0,255,136,.35);background:rgba(0,255,136,.08);
+        color:#00ff88;font-family:'Share Tech Mono',monospace;font-size:9px;
+        letter-spacing:.2em;text-transform:uppercase;cursor:pointer;
+        clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%);
+        transition:all 150ms;
+      " onmouseover="this.style.background='rgba(0,255,136,.18)'" onmouseout="this.style.background='rgba(0,255,136,.08)'">
+        ✓ Bắt đầu
+      </button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
