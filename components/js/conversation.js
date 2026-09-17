@@ -6,250 +6,180 @@ import {
 import { renderRoster, renderCouncilBar } from './roster.js';
 import {
   makeStats, makeBarChart, makeLineChart, makeDonut,
-  makeHeatmap, makeVideo, makeTable, makeTimeline, makeRings,
+  makeHeatmap, makeTable, makeTimeline, makeRings,
 } from './rich-cards.js';
+
+// ── HELPER: ALERT CARD ───────────────────────────────────────
+function makeAlertCard(level, title, lines) {
+  const colors = {
+    red:    { bg:'rgba(255,51,102,.08)',  border:'rgba(255,51,102,.3)',  fg:'#ff3366', icon:'🔴' },
+    amber:  { bg:'rgba(255,187,0,.08)',   border:'rgba(255,187,0,.3)',   fg:'#ffbb00', icon:'⚠' },
+    green:  { bg:'rgba(0,255,136,.08)',   border:'rgba(0,255,136,.3)',   fg:'#00ff88', icon:'✓' },
+  };
+  const c = colors[level] || colors.amber;
+  return `<div class="rich-card" style="border-color:${c.border};background:${c.bg}">
+    <div class="rich-header" style="border-color:${c.border}">
+      <span class="rich-title" style="color:${c.fg}">${c.icon} ${title}</span>
+      <span class="rich-tag" style="color:${c.fg};border-color:${c.border}">ALERT</span>
+    </div>
+    <div class="rich-body" style="display:flex;flex-direction:column;gap:6px">
+      ${lines.map(l => `<div style="font-size:9px;color:#d1d5db;line-height:1.6;padding:4px 6px;background:rgba(255,255,255,.03);border-left:2px solid ${c.fg}">${l}</div>`).join('')}
+    </div>
+  </div>`;
+}
+
+// ── HELPER: REROUTE COMPARE CARD ────────────────────────────
+function makeRerouteCard(from, to) {
+  return `<div class="rich-card">
+    <div class="rich-header"><span class="rich-title">🗺 Reroute Analysis</span><span class="rich-tag">AUTO</span></div>
+    <div class="rich-body" style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center">
+        <div style="padding:8px 10px;background:rgba(255,51,102,.07);border:1px solid rgba(255,51,102,.25);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%)">
+          <div style="font-size:7px;letter-spacing:.15em;color:#ff3366;margin-bottom:4px">HIỆN TẠI · ${from.id}</div>
+          ${[
+            ['Khoảng cách', from.dist],
+            ['Hàng đợi',    `<span style="color:#ff3366;font-weight:700">${from.queue}</span>`],
+            ['Giá điện',    from.price],
+            ['ETA giao xe', `<span style="color:#ff3366">${from.eta}</span>`],
+          ].map(([k,v]) => `<div style="display:flex;justify-content:space-between;font-size:8px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#6b7280">${k}</span><span style="color:#d1d5db">${v}</span></div>`).join('')}
+        </div>
+        <div style="font-size:16px;color:#ffbb00;text-align:center">→</div>
+        <div style="padding:8px 10px;background:rgba(0,255,136,.07);border:1px solid rgba(0,255,136,.25);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%)">
+          <div style="font-size:7px;letter-spacing:.15em;color:#00ff88;margin-bottom:4px">ĐỀ XUẤT · ${to.id}</div>
+          ${[
+            ['Khoảng cách', to.dist],
+            ['Hàng đợi',    `<span style="color:#00ff88;font-weight:700">${to.queue}</span>`],
+            ['Giá điện',    to.price],
+            ['ETA giao xe', `<span style="color:#00ff88">${to.eta}</span>`],
+          ].map(([k,v]) => `<div style="display:flex;justify-content:space-between;font-size:8px;padding:2px 0;border-bottom:1px solid rgba(255,255,255,.05)"><span style="color:#6b7280">${k}</span><span style="color:#d1d5db">${v}</span></div>`).join('')}
+        </div>
+      </div>
+      <div style="padding:7px 10px;background:rgba(0,255,136,.05);border:1px solid rgba(0,255,136,.15);display:flex;justify-content:space-between;align-items:center;clip-path:polygon(0 3px,3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%)">
+        <span style="font-size:8px;color:#6b7280">Tiết kiệm thời gian</span>
+        <span style="font-family:'Orbitron',monospace;font-size:13px;font-weight:900;color:#00ff88">−38 phút</span>
+      </div>
+    </div>
+  </div>`;
+}
 
 // ── PRE-POPULATED CONVERSATION ───────────────────────────────
 export async function initConversation() {
-  addSysMsg('Multi-agent session khởi tạo · 11/09/2026 · 09:14:02');
-  await addMsg('nexus', 'all', 'Council đã kết nối. Phát hiện <strong style="color:var(--red)">2 sự kiện ưu tiên</strong> cần xử lý: VF-07 SOC anomaly và L3 phase overload. Kích hoạt Fleet Monitor và Data Agent để điều tra.', 0);
 
+  // ── PHASE 1: KHỞI ĐỘNG ─────────────────────────────────────
+  addSysMsg('Trợ lý AI Giám sát Vận hành khởi tạo · 11/09/2026 · 13:42:07');
+  await addMsg('nexus', 'all',
+    'Xin chào. Tôi là <strong style="color:var(--n)">Trợ lý AI Giám sát Vận hành</strong> (Real-time Fleet Monitor). ' +
+    'Đang theo dõi song song <strong>12 xe</strong> trên tuyến và <strong>8 trạm sạc</strong> trong khu vực. ' +
+    'Tôi sẽ tự động cảnh báo và đề xuất điều chỉnh ngay khi phát hiện rủi ro.', 0);
+
+  // ── Giám sát: Trạng thái xe ─────────────────────────────────
+  await sleep(700);
+  addTyping('monitor');
+  await sleep(1500);
+  removeTyping('monitor');
+  await addRichMsg('monitor',
+    'Cập nhật trạng thái fleet 13:42. Đang theo dõi SOC, vị trí và tiến độ tuyến:',
+    makeStats([
+      { label:'Xe đang chạy',  val:'8/12',  color:'#00ff88', sub:'4 xe tại depot' },
+      { label:'SOC trung bình', val:'54%',  color:'#ffbb00', sub:'Target: >60%' },
+      { label:'Đúng lịch',     val:'6/8',   color:'#88ff44', sub:'2 xe có nguy cơ trễ' },
+      { label:'Cần sạc sớm',   val:'3 xe',  color:'#ff3366', sub:'SOC < 30%' },
+    ]) +
+    makeTable('Trạng thái xe trên tuyến', ['Xe', 'SOC', 'Vị trí hiện tại', 'Tiếp theo', 'Trạm sạc DK', 'Trạng thái'], [
+      [`<strong style="color:#88ff44">VF-03</strong>`, '72%', 'Quận 9 · KM 14', 'Giao hàng 14:10', 'CP-02', `<span style="color:#00ff88">✓ Đúng lịch</span>`],
+      [`<strong style="color:#ffbb00">VF-08</strong>`, '28%', 'Bình Dương · KM 22', 'Giao hàng 15:30', `<span style="color:#ff3366">CP-03</span>`, `<span style="color:#ffbb00">⚠ Cần theo dõi</span>`],
+      [`<strong style="color:#ff3366">VF-11</strong>`, '19%', 'Long An · KM 8',  'Giao hàng 14:45', 'CP-06', `<span style="color:#ff3366">⚠ SOC thấp</span>`],
+      [`<strong style="color:#88ff44">VF-05</strong>`, '81%', 'Quận 7 · KM 6',   'Giao hàng 13:55', '—',     `<span style="color:#00ff88">✓ Đủ pin</span>`],
+    ])
+  );
+
+  // ── Giám sát: Trạng thái trạm sạc ─────────────────────────
   await sleep(600);
-  addSysMsg('Fleet Monitor đang phân tích telemetry...');
-  addTyping('fleet');
-  await sleep(1400);
-  removeTyping('fleet');
-  await addMsg('fleet', 'all', '⚠ VF-07 SOC <strong style="color:var(--red)">đóng băng tại 41%</strong> trong 38 phút liên tục. T-Box báo delta năng lượng = 0. Xe đang dừng tại Bay 4 / CP-04. Phiên vẫn active nhưng không có transfer.', 0);
-
-  await sleep(500);
-  addTyping('data');
+  addTyping('monitor');
   await sleep(1200);
-  removeTyping('data');
-  await addMsg('data', 'fleet', 'Xác nhận với <span class="mention" style="color:var(--f)">@Fleet Monitor</span>. OCPP log CP-04: MeterValues cuối lúc 09:07:51 — <strong>0 kW transfer</strong>. StatusNotification = <strong style="color:var(--amber)">SuspendedEV</strong>. Session TXN-0847 vẫn open.', 0);
+  removeTyping('monitor');
+  await addRichMsg('monitor',
+    'Song song — trạng thái 8 trạm sạc trong khu vực. Phát hiện biến động hàng đợi:',
+    makeTable('Trạm sạc — Realtime', ['Trạm', 'Khoảng cách', 'Hàng đợi', 'Công suất', 'Giá điện', 'Tình trạng'], [
+      ['CP-02', '2.1 km', `<span style="color:#00ff88">0 xe</span>`,  '50 kW', '3,720₫/kWh', `<span style="color:#00ff88">Sẵn sàng</span>`],
+      ['CP-03', '4.8 km', `<span style="color:#ff3366">3 xe · 45 phút</span>`, '50 kW', '3,850₫/kWh', `<span style="color:#ff3366">Quá tải</span>`],
+      ['CP-06', '6.2 km', `<span style="color:#ffbb00">1 xe · 12 phút</span>`, '22 kW', '3,680₫/kWh', `<span style="color:#ffbb00">Chờ ít</span>`],
+      ['CP-07', '5.5 km', `<span style="color:#00ff88">0 xe</span>`,  '50 kW', '3,850₫/kWh', `<span style="color:#00ff88">Sẵn sàng</span>`],
+    ])
+  );
 
-  await sleep(400);
-  addTyping('cms');
+  // ── PHASE 2: PHÁT HIỆN VẤN ĐỀ ──────────────────────────────
+  await sleep(800);
+  addSysMsg('⚠ Phát hiện bất thường — CP-03 hàng đợi tăng đột biến lúc 13:44');
+
+  addTyping('monitor');
   await sleep(1000);
-  removeTyping('cms');
-  STATUS.cms = 'active'; renderRoster();
-  await addMsg('cms', 'all', 'Đã kiểm tra <strong style="color:var(--c)">GHN CMS Dashboard</strong> (AMPECO) — CP-04 hiển thị trạng thái "Preparing". <span style="color:var(--red)">Mismatch</span> với trạng thái vehicle. Gợi ý: terminate session và khởi động lại trên trụ khác.', 0);
+  removeTyping('monitor');
+  STATUS.monitor = 'active'; renderRoster();
+  await addRichMsg('monitor',
+    '🔴 <strong style="color:#ff3366">CẢNH BÁO RỦI RO</strong> — VF-08 đang tiến đến CP-03, nhưng trạm vừa có sự cố:',
+    makeAlertCard('red', 'CP-03 Quá Tải — Nguy cơ trễ tuyến VF-08', [
+      '📍 <strong>VF-08</strong> · SOC 28% · Bình Dương · ETA đến CP-03: <strong>13:58</strong>',
+      '⏱ Hàng đợi CP-03 hiện tại: <strong style="color:#ff3366">3 xe · ước tính 45 phút chờ</strong> (vừa tăng từ 0 trong 8 phút)',
+      '🚚 Tuyến giao hàng tiếp theo của VF-08: <strong>15:30</strong> — nếu sạc tại CP-03, ETA thực: <strong style="color:#ff3366">16:12 (trễ 42 phút)</strong>',
+      '⚡ SOC hiện tại 28% <strong>không đủ</strong> để hoàn thành tuyến không qua sạc',
+    ])
+  );
 
+  // ── PHASE 3: ALERT CHO GSVT & TÀI XẾ ──────────────────────
   await sleep(500);
-  addTyping('route');
-  await sleep(900);
-  removeTyping('route');
-  await addMsg('route', 'engine', 'CP-05 đang idle, capacity 50kW. VF-07 cần ~22kWh để đạt 80% target. <strong style="color:var(--r)">ETA: 52 phút</strong>. Đề xuất chuyển sang CP-05 để tối ưu thời gian.', 0);
+  addTyping('manage');
+  await sleep(1100);
+  removeTyping('manage');
+  await addRichMsg('manage',
+    'Đã phát Alert tức thì đến các bên liên quan:',
+    makeAlertCard('amber', 'Alert đã gửi — Đang chờ xác nhận', [
+      '📱 <strong>GSVT Nguyễn Minh Tuấn</strong> — Zalo + App · Gửi lúc 13:44:31 · <span style="color:#00ff88">✓ Đã đọc</span>',
+      '📱 <strong>Tài xế VF-08 Trần Văn Hùng</strong> — App Driver · Gửi lúc 13:44:31 · <span style="color:#ffbb00">⏳ Chờ phản hồi</span>',
+      '🔄 Hệ thống đang tính toán phương án reroute tối ưu...',
+    ])
+  );
 
+  // ── PHASE 4: REROUTE ────────────────────────────────────────
   await sleep(600);
-  addTyping('engine');
-  await sleep(1600);
-  removeTyping('engine');
-  addProposal('engine', {
-    id: '#P-001',
-    title: 'Terminate CP-04 session VF-07 → Restart trên CP-05 (50kW)',
-    reasoning: 'CP-04 SuspendedEV 38min, 0kW transfer. Session stuck.',
-    outcome: 'VF-07 đạt 80% SOC trong 52 phút · CP-04 available cho xe khác',
+  addTyping('schedule');
+  await sleep(1400);
+  removeTyping('schedule');
+  await addRichMsg('schedule',
+    'Đã phân tích <strong>8 trạm</strong> trong bán kính 10km. CP-07 là phương án tối ưu nhất:',
+    makeRerouteCard(
+      { id:'CP-03', dist:'4.8 km', queue:'3 xe · 45 phút', price:'3,850₫/kWh', eta:'16:12 ⚠' },
+      { id:'CP-07', dist:'5.5 km', queue:'0 xe · Ngay',    price:'3,850₫/kWh', eta:'15:08 ✓' }
+    ) +
+    makeTable('Các phương án khác đã xét', ['Trạm', 'Khoảng cách', 'Chờ', 'ETA giao xe', 'Điểm tối ưu'], [
+      ['CP-07', '5.5 km', '0 xe',       `<span style="color:#00ff88">15:08</span>`, `<span style="color:#00ff88">★★★ Tốt nhất</span>`],
+      ['CP-02', '7.2 km', '0 xe',       `<span style="color:#ffbb00">15:22</span>`, `<span style="color:#ffbb00">★★☆ Xa hơn</span>`],
+      ['CP-06', '8.1 km', '1 xe 12ph',  `<span style="color:#ffbb00">15:35</span>`, `<span style="color:#ffbb00">★★☆ Chờ thêm</span>`],
+      ['CP-03', '4.8 km', '3 xe 45ph',  `<span style="color:#ff3366">16:12</span>`, `<span style="color:#ff3366">✗ Không phù hợp</span>`],
+    ])
+  );
+
+  // ── PHASE 5: 1-CLICK PROPOSAL ───────────────────────────────
+  await sleep(500);
+  addSysMsg('Gợi ý điều chỉnh sẵn sàng — Phê duyệt 1-click bên dưới');
+
+  addProposal('schedule', {
+    id: '#R-001',
+    title: 'Reroute VF-08: CP-03 → CP-07 · Tiết kiệm 38 phút',
+    reasoning: 'CP-03 quá tải 45 phút. CP-07 sẵn sàng, lệch 0.7km, cùng giá điện.',
+    outcome: 'VF-08 giao hàng 15:08 · Đúng lịch tuyến 15:30 · SOC đạt 80% sau sạc',
     risk: 'LOW',
-    confidence: 94,
-    votes: [{ id:'fleet', yes:true }, { id:'route', yes:true }, { id:'cms', yes:true }, { id:'data', abstain:true }],
+    confidence: 97,
+    votes: [{ id:'monitor', yes:true }, { id:'manage', yes:true }, { id:'schedule', yes:true }],
   });
 
-  await sleep(800);
-  addSysMsg('3/4 agents đồng thuận · Decision Engine chờ Operator');
-
-  await sleep(400);
-  addTyping('fleet');
-  await sleep(900);
-  removeTyping('fleet');
-  await addMsg('fleet', 'engine', 'Lưu ý thêm: <strong style="color:var(--amber)">VF-11</strong> tại CP-08 chỉ còn 8% SOC — cần 80% cho tuyến chiều. Nếu CP-05 đã occupied, VF-11 cần CP-05 ưu tiên hơn VF-07.', 0);
-
-  await sleep(300);
-  addTyping('report');
-  await sleep(1100);
-  removeTyping('report');
-  STATUS.report = 'active'; renderRoster(); renderCouncilBar();
-  addProposal('report', {
-    id: '#P-002',
-    title: 'Tái phân bổ thứ tự sạc: VF-11 (CP-05) → VF-07 (CP-01 khi free)',
-    reasoning: 'VF-11 SOC 8% — không đủ cho tuyến chiều 14:00. VF-07 SOC 41% đủ chạy nếu cần.',
-    outcome: 'Đảm bảo đủ xe cho tuyến chiều · Cost/km tối ưu hơn vs diesel fallback',
-    risk: 'LOW',
-    confidence: 88,
-    votes: [{ id:'route', yes:true }, { id:'engine', yes:true }, { id:'fleet', yes:true }, { id:'cms', abstain:true }],
-  });
-
-  await sleep(800);
-  addSysMsg('Agents đang tổng hợp dữ liệu và tạo báo cáo...');
-  initRichMessages();
-}
-
-// ── RICH CONVERSATION ────────────────────────────────────────
-export async function initRichMessages() {
-  await sleep(400);
-
-  // Report Agent: Stats + Bar chart
-  addTyping('report');
-  await sleep(1300);
-  removeTyping('report');
-  await addRichMsg('report',
-    'Tổng hợp hiệu suất fleet hôm nay. Đây là snapshot toàn bộ chỉ số:',
-    makeStats([
-      { label:'Fleet Online', val:'12/15', color:'#00ff88', sub:'↑ 3 vs hôm qua' },
-      { label:'Đang Sạc',     val:'3',     color:'#00d4ff', sub:'CP-02, CP-06, CP-08' },
-      { label:'Avg SOC',      val:'61%',   color:'#ffbb00', sub:'Target: >70%' },
-      { label:'Tiết kiệm',    val:'₫2.4M', color:'#cc44ff', sub:'vs diesel hôm nay' },
-    ]) +
-    makeBarChart('Fleet SOC theo xe', [
-      { label:'VF-01', val:82 }, { label:'VF-02', val:34 }, { label:'VF-03', val:45 },
-      { label:'VF-04', val:51 }, { label:'VF-05', val:78 }, { label:'VF-06', val:29 },
-      { label:'VF-07', val:41 }, { label:'VF-08', val:12 }, { label:'VF-09', val:65 },
-      { label:'VF-10', val:88 }, { label:'VF-11', val:8  }, { label:'VF-12', val:72 },
-    ])
-  );
-
-  // Fleet Monitor: Heatmap
-  addTyping('fleet');
-  await sleep(900);
-  removeTyping('fleet');
-  await addRichMsg('fleet',
-    'Visual SOC heatmap toàn đội — màu sắc phản ánh mức độ ưu tiên sạc:',
-    makeHeatmap('Fleet SOC Heatmap — 11/09/2026 09:22', [
-      { id:'VF-01', val:82 }, { id:'VF-02', val:34 }, { id:'VF-03', val:45, icon:'⚡' },
-      { id:'VF-04', val:51 }, { id:'VF-05', val:78 }, { id:'VF-06', val:29 },
-      { id:'VF-07', val:41, icon:'⚠' }, { id:'VF-08', val:12, icon:'🔴' }, { id:'VF-09', val:65, icon:'⚡' },
-      { id:'VF-10', val:88 }, { id:'VF-11', val:8, icon:'⚡' }, { id:'VF-12', val:72 },
-    ])
-  );
-
-  await sleep(700);
-
-  // Data Agent: Line chart + stats
-  const hourData = [3,5,8,12,15,18,22,30,45,52,58,142,60,55,50,48,52,68,72,65,55,40,25,12];
-  addTyping('data');
-  await sleep(1100);
-  removeTyping('data');
-  await addRichMsg('data',
-    'Biểu đồ tiêu thụ điện 24h hôm nay. Spike hiện tại 142kW lúc 11:00 do 3 xe đang sạc đồng thời:',
-    makeLineChart('Công suất tiêu thụ theo giờ (kW)',
-      hourData.map((v, i) => ({ v, l:`${i}h`, highlight: v === Math.max(...hourData) })),
-      '#00d4ff'
-    ) +
-    makeStats([
-      { label:'Hiện tại',    val:'142kW',  color:'#ffbb00', sub:'71% công suất trạm' },
-      { label:'Peak hôm nay', val:'142kW', color:'#ff3366', sub:'11:00' },
-      { label:'Tổng hôm nay', val:'892kWh',color:'#00d4ff', sub:'↑ 12% vs hôm qua' },
-    ])
-  );
-
   await sleep(600);
-
-  // Fleet Monitor: Donut + Rings
-  addTyping('fleet');
-  await sleep(800);
-  removeTyping('fleet');
-  await addRichMsg('fleet', null,
-    makeDonut('Trạng thái Fleet', [
-      { label:'Đang chạy tuyến', val:7, color:'#00ff88' },
-      { label:'Đang sạc',        val:3, color:'#00d4ff' },
-      { label:'Idle tại Depot',  val:1, color:'#6b7280' },
-      { label:'Anomaly / Lỗi',   val:1, color:'#ff3366' },
-    ]) +
-    makeRings('SOC Realtime — Xe đang sạc', [
-      { label:'VF-03', val:45, icon:'⚡' }, { label:'VF-09', val:65, icon:'⚡' },
-      { label:'VF-11', val:8,  icon:'🔴' }, { label:'VF-07', val:41, icon:'⚠' },
-    ])
-  );
-
-  await sleep(700);
-
-  // Route Optimizer: Video + bar chart
-  addTyping('route');
-  await sleep(1000);
-  removeTyping('route');
-  await addRichMsg('route',
-    'Replay tối ưu hóa tuyến đường buổi chiều. Dựa trên SOC forecast hiện tại, tôi đã tái phân bổ 4 xe để tối ưu chi phí/km:',
-    makeVideo('Route Optimization Replay — Buổi chiều 14:00', '2m 14s', ['Tuyến A-B', '4 Xe', 'Tối ưu']) +
-    makeBarChart('Ước tính tiết kiệm theo tuyến (₫/km)',
-      [
-        { label:'Tuyến A', val:2560, unit:'₫' }, { label:'Tuyến B', val:2480, unit:'₫' },
-        { label:'Tuyến C', val:2620, unit:'₫' }, { label:'Tuyến D', val:2390, unit:'₫' },
-      ],
-      '#ffbb00'
-    )
-  );
-
-  await sleep(600);
-
-  // CMS Connector: Table + Timeline
-  addTyping('cms');
-  await sleep(1000);
-  removeTyping('cms');
-  await addRichMsg('cms',
-    'Dữ liệu phiên sạc từ AMPECO CMS và log OCPP sự kiện quan trọng hôm nay:',
-    makeTable('Phiên sạc đang hoạt động', ['Xe', 'Trụ', 'SOC', 'Công suất', 'ETA 80%', 'Chi phí'], [
-      [`<span style="color:var(--n);font-weight:700">VF-03</span>`, 'CP-02', '45%', `<span style="color:var(--n)">50kW</span>`, '+42 phút', '₫114K'],
-      [`<span style="color:var(--n);font-weight:700">VF-09</span>`, 'CP-06', '65%', `<span style="color:var(--n)">22kW</span>`, '+65 phút', '₫21K'],
-      [`<span style="color:var(--red);font-weight:700">VF-11</span>`, 'CP-08', `<span style="color:var(--red)">8%</span>`, `<span style="color:var(--n)">50kW</span>`, `<span style="color:var(--amber)">+80 phút</span>`, '₫108K'],
-      [`<span style="color:var(--amber);font-weight:700">VF-07</span>`, 'CP-04', `<span style="color:var(--amber)">41%⚠</span>`, `<span style="color:var(--red)">0kW</span>`, `<span style="color:var(--red)">STUCK</span>`, '₫0'],
-    ]) +
-    makeTimeline('OCPP Event Log — Gần nhất', [
-      { time:'09:22:14', msg:'CP-02 · StatusNotification · <strong>Charging</strong> · VF-03',              color:'#00ff88' },
-      { time:'09:21:58', msg:'CP-06 · MeterValues · <strong>22.1 kW</strong> · VF-09',                     color:'#00d4ff' },
-      { time:'09:20:31', msg:'VETC-KBC-02 · OCPI StartSession · <strong>VF-04 OK</strong>',                color:'#4499ff' },
-      { time:'09:19:15', msg:'CP-03 · StatusNotification · <strong style="color:var(--red)">Faulted</strong> · timeout', color:'#ff3366' },
-      { time:'09:15:10', msg:'CP-04 · Heartbeat missed · <strong style="color:var(--amber)">SuspendedEV</strong>',       color:'#ffbb00' },
-    ])
-  );
-
-  await sleep(600);
-
-  // Report Agent: Cost comparison
-  addTyping('report');
-  await sleep(1100);
-  removeTyping('report');
-  const monthData = [38,42,45,39,41,44,47,43,40,38,36];
-  await addRichMsg('report',
-    'Phân tích tài chính tháng 9/2026. EV fleet đang tiết kiệm ổn định hơn 65% so với diesel:',
-    makeLineChart('Chi phí/km: EV vs Diesel (tháng 9)',
-      monthData.map((_, i) => ({ v: 1200 + Math.round(Math.random() * 80 - 40), l:`T${i + 1}`, highlight: i === monthData.length - 1 })),
-      '#00ff88'
-    ) +
-    `<div class="rich-card">
-      <div class="rich-header"><span class="rich-title">💰 So sánh EV vs Diesel</span><span class="rich-tag">Tháng 9</span></div>
-      <div class="rich-body">
-        <div style="margin-bottom:10px">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px">
-            <span style="font-size:8px;color:var(--muted-fg);width:50px">EV (thực)</span>
-            <div style="flex:1;height:16px;background:rgba(255,255,255,.05);position:relative;clip-path:polygon(0 3px,3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%)">
-              <div class="r-bar-fill" data-w="32%" style="width:0%;height:100%;background:linear-gradient(90deg,rgba(0,255,136,.5),rgba(0,255,136,.2));display:flex;align-items:center;padding-left:6px;font-size:8px;font-weight:700;color:var(--n)">1,240₫/km</div>
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:8px">
-            <span style="font-size:8px;color:var(--muted-fg);width:50px">Diesel</span>
-            <div style="flex:1;height:16px;background:rgba(255,255,255,.05);position:relative;clip-path:polygon(0 3px,3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%)">
-              <div class="r-bar-fill" data-w="100%" style="width:0%;height:100%;background:linear-gradient(90deg,rgba(255,51,102,.5),rgba(255,51,102,.2));display:flex;align-items:center;padding-left:6px;font-size:8px;font-weight:700;color:var(--red)">3,800₫/km</div>
-            </div>
-          </div>
-        </div>
-        <div style="padding:10px;background:rgba(0,255,136,.06);border:1px solid rgba(0,255,136,.2);clip-path:polygon(0 4px,4px 0,100% 0,100% calc(100% - 4px),calc(100% - 4px) 100%,0 100%);display:flex;align-items:center;justify-content:space-between">
-          <div>
-            <div style="font-size:7px;color:var(--muted-fg);letter-spacing:.15em;text-transform:uppercase">Tiết kiệm</div>
-            <div style="font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:var(--n);text-shadow:0 0 10px #00ff8840">67.4%</div>
-          </div>
-          <div style="text-align:right">
-            <div style="font-size:7px;color:var(--muted-fg)">Tháng 9/2026</div>
-            <div style="font-size:14px;font-weight:700;color:var(--n)">₫26.2M</div>
-            <div style="font-size:8px;color:var(--muted-fg)">tổng tiết kiệm được</div>
-          </div>
-        </div>
-      </div>
-    </div>`
-  );
+  addSysMsg('Chờ phê duyệt từ GSVT · Tài xế đã nhận thông báo reroute dự kiến');
 }
 
 // ── LIVE SIMULATION ──────────────────────────────────────────
 export function addThinkingCycle() {
-  const activeAgents = ['data', 'fleet', 'route', 'engine', 'cms', 'report'];
+  const activeAgents = ['schedule', 'monitor', 'manage'];
   const agId = activeAgents[Math.floor(Math.random() * activeAgents.length)];
 
   if (Math.random() < 0.4) {
@@ -257,19 +187,19 @@ export function addThinkingCycle() {
     setTimeout(async () => {
       removeTyping(agId);
       const richOpts = [
-        () => addRichMsg(agId, 'Cập nhật nhanh từ dữ liệu mới nhất:', makeStats([
-          { label:'Công suất', val:'142kW',  color:'#ffbb00', sub:'Realtime' },
-          { label:'kWh hôm nay', val:'892',  color:'#00d4ff', sub:'Tổng tiêu thụ' },
-          { label:'Cost/km',   val:'1,240₫', color:'#00ff88', sub:'↓ Tốt' },
+        () => addRichMsg('monitor', 'Cập nhật realtime — SOC và vị trí:', makeStats([
+          { label:'VF-08 SOC',    val:'28%',  color:'#ff3366', sub:'Cần sạc' },
+          { label:'ETA CP-07',   val:'14:02', color:'#00ff88', sub:'Nếu reroute' },
+          { label:'Hàng đợi CP-03', val:'45ph', color:'#ff3366', sub:'Đang tăng' },
         ])),
-        () => addRichMsg(agId, null, makeRings('SOC Update — Xe đang sạc', [
-          { label:'VF-03', val:47, icon:'⚡' }, { label:'VF-09', val:67, icon:'⚡' },
-          { label:'VF-11', val:11, icon:'🔴' }, { label:'VF-07', val:41, icon:'⚠' },
+        () => addRichMsg('monitor', null, makeRings('SOC Fleet — Xe đang trên tuyến', [
+          { label:'VF-03', val:72, icon:'✓'  }, { label:'VF-08', val:28, icon:'🔴' },
+          { label:'VF-11', val:19, icon:'⚠'  }, { label:'VF-05', val:81, icon:'✓'  },
         ])),
-        () => addRichMsg(agId, 'Timeline sự kiện 15 phút qua:', makeTimeline('Recent Events', [
-          { time: now(), msg:'Fleet đang ổn định. 10/12 xe trong tầm hoạt động bình thường.', color:'#00ff88' },
-          { time: now(), msg:'L3 phase tải giảm về 81% sau khi cân bằng tải.',               color:'#ffbb00' },
-          { time: now(), msg:'VF-07 đang chờ chuyển sang CP-05.',                             color:'#00d4ff' },
+        () => addRichMsg('manage', 'Cập nhật trạng thái alert và liên lạc:', makeTimeline('Alert Log', [
+          { time: now(), msg:'GSVT đã xem cảnh báo reroute VF-08',        color:'#00ff88' },
+          { time: now(), msg:'CP-07 xác nhận slot sẵn sàng cho VF-08',    color:'#00d4ff' },
+          { time: now(), msg:'VF-11 SOC 19% — theo dõi thêm CP-06',       color:'#ffbb00' },
         ])),
       ];
       await richOpts[Math.floor(Math.random() * richOpts.length)]();
@@ -278,11 +208,11 @@ export function addThinkingCycle() {
   }
 
   const msgs = [
-    [agId,    'all',    'Phát hiện cập nhật mới từ telemetry. SOC fleet trung bình hiện tại: <strong style="color:var(--n)">68%</strong>. 10/12 xe trong vùng an toàn.'],
-    ['data',  'fleet',  'Xác nhận: T-Box VF-07 đã phục hồi kết nối. SOC đang cập nhật theo thời gian thực.'],
-    ['route', 'all',    'Đã tối ưu lịch sạc buổi chiều. Dự kiến 8/12 xe đạt >70% SOC trước 13:30.'],
-    ['engine','all',    'Phân tích L3 phase overload: <strong style="color:var(--amber)">87% tải</strong>. Đề xuất shift 1 phiên sang thấp điểm để giảm xuống <80%.'],
-    ['cms',   'data',   'AMPECO API sync OK. 3 VETC chargers đang hoạt động bình thường. OCPI session count: 18 tháng này.'],
+    ['monitor',  'all',     'Cập nhật: VF-08 SOC ổn định 28%, đang giảm tốc chuẩn bị rẽ. GPS xác nhận hướng CP-07 nếu được phê duyệt.'],
+    ['schedule', 'all',     'CP-07 vẫn 0 hàng đợi. Slot giữ cho VF-08 trong <strong style="color:#ffbb00">8 phút</strong> tới. Đề nghị phê duyệt sớm.'],
+    ['manage',   'monitor', 'GSVT Tuấn đã phản hồi: đang xem xét. Tài xế Hùng xác nhận nhận được cảnh báo.'],
+    ['monitor',  'all',     '⚠ VF-11 SOC xuống còn <strong style="color:#ff3366">17%</strong>. Khuyến nghị ưu tiên sạc tại CP-06 trước tuyến 14:45.'],
+    ['schedule', 'all',     'Lịch sạc đã tự động điều chỉnh: VF-11 → CP-06 lúc 14:05, VF-08 → CP-07 lúc 14:02 (chờ phê duyệt).'],
   ];
   const [from, to, text] = msgs[Math.floor(Math.random() * msgs.length)];
   addTyping(from);
