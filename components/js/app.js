@@ -12,7 +12,7 @@ function executeProposal(btn, id) {
     addDecision(`Proposal ${id} đã được thực thi. Agents CMS Connector và Fleet Monitor đang giám sát kết quả. ETA hoàn thành: <strong style="color:var(--n)">52 phút</strong>.`),
     800
   );
-  STATUS.cms = 'active'; STATUS.fleet = 'active';
+  STATUS.manage = 'active'; STATUS.monitor = 'active';
   renderRoster(); renderCouncilBar();
 }
 
