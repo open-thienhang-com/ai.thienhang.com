@@ -2,22 +2,22 @@
 let cmsLoaded = false;
 
 export function toggleCMS() {
-  const shell  = document.getElementById('shell');
-  const panel  = document.getElementById('cmsPanel');
-  const btn    = document.getElementById('cmsToggle');
-  const barBtn = document.getElementById('cmsBarBtn');
-  const isOpen = shell.classList.contains('cms-open');
+  const panel     = document.getElementById('cmsPanel');
+  const btn       = document.getElementById('cmsToggle');
+  const barBtn    = document.getElementById('cmsBarBtn');
+  const manageRow = document.querySelector('.agent-row[data-agent="manage"]');
+  const isOpen    = panel.style.display === 'flex';
 
   if (isOpen) {
-    shell.classList.remove('cms-open');
     panel.style.display = 'none';
-    btn    && btn.classList.remove('cms-active');
-    barBtn && (barBtn.textContent = '⊞ Open CMS');
+    btn       && btn.classList.remove('cms-active');
+    barBtn    && (barBtn.textContent = '⊞ Open CMS');
+    manageRow && manageRow.classList.remove('cms-active-row');
   } else {
     panel.style.display = 'flex';
-    shell.classList.add('cms-open');
-    btn    && btn.classList.add('cms-active');
-    barBtn && (barBtn.textContent = '✕ Close CMS');
+    btn       && btn.classList.add('cms-active');
+    barBtn    && (barBtn.textContent = '✕ Close CMS');
+    manageRow && manageRow.classList.add('cms-active-row');
     if (!cmsLoaded) { loadCMS(); cmsLoaded = true; }
   }
 }
@@ -34,6 +34,6 @@ export function reloadCMS() {
   const loading = document.getElementById('cmsLoading');
   frame.style.display   = 'none';
   loading.style.display = 'flex';
-  frame.src = frame.src; // triggers reload
+  frame.src = frame.src;
   frame.onload = () => { loading.style.display = 'none'; frame.style.display = 'block'; };
 }

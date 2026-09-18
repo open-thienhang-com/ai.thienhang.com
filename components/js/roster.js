@@ -10,14 +10,16 @@ export function renderRoster() {
     const st = STATUS[a.id] || 'idle';
     const dotColor = st === 'active' ? a.color : st === 'thinking' ? '#ffbb00' : '#6b7280';
     const stLabel  = st === 'active' ? 'ACTIVE'  : st === 'thinking' ? 'THINKING' : 'IDLE';
-    html += `<div class="agent-row ${st === 'thinking' ? 'thinking' : st === 'active' ? 'speaking' : ''}" data-agent="${a.id}">
+    const isManage = a.id === 'manage';
+    const onClick  = isManage ? ' onclick="toggleCMS()" title="Mở/đóng CMS Quản lí"' : '';
+    html += `<div class="agent-row ${st === 'thinking' ? 'thinking' : st === 'active' ? 'speaking' : ''}${isManage ? ' manage-cms-row' : ''}" data-agent="${a.id}"${onClick}>
       <div class="adot" style="background:${dotColor};box-shadow:0 0 4px ${dotColor}40;animation-delay:${Math.random().toFixed(1)}s"></div>
       <div class="aavatar" style="background:${a.bg};border:1px solid ${a.border};color:${a.color}">${a.icon}</div>
       <div style="flex:1;min-width:0">
         <div class="aname">${a.name}</div>
         <div style="font-size:7px;letter-spacing:.07em;color:var(--muted-fg)">${a.role}</div>
       </div>
-      <div class="astatus" style="color:${dotColor}">${stLabel}</div>
+      <div class="astatus" style="color:${dotColor}">${isManage ? '⊞' : stLabel}</div>
     </div>`;
   });
   roster.innerHTML = html;
