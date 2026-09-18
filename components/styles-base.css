@@ -181,6 +181,17 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .itool:hover{border-color:var(--n);color:var(--n)}
 .itool.primary{background:var(--n);color:var(--bg);border-color:var(--n)}
 .itool.primary:hover{filter:brightness(1.1);box-shadow:0 0 8px rgba(0,255,136,.4)}
+.itool.schedule-upload{border-color:rgba(255,187,0,.35);color:#ffbb00}
+.itool.schedule-upload:hover{border-color:#ffbb00;background:rgba(255,187,0,.1);box-shadow:0 0 6px rgba(255,187,0,.25)}
+
+/* ── FILTER BAR ────────────────────────────────── */
+.filter-bar{flex-shrink:0;display:flex;align-items:center;gap:5px;padding:6px 16px;border-bottom:1px solid var(--border);background:rgba(10,10,15,.6);overflow-x:auto}
+.filter-bar::-webkit-scrollbar{height:2px}
+.filter-bar::-webkit-scrollbar-thumb{background:var(--border)}
+.filter-label{font-size:7px;letter-spacing:.2em;color:var(--muted-fg);margin-right:4px;white-space:nowrap}
+.filter-btn{height:20px;padding:0 8px;border:1px solid var(--border);background:transparent;color:var(--muted-fg);font-family:'Share Tech Mono',monospace;font-size:7px;letter-spacing:.1em;cursor:pointer;clip-path:polygon(0 3px,3px 0,100% 0,100% calc(100% - 3px),calc(100% - 3px) 100%,0 100%);transition:all 150ms;white-space:nowrap}
+.filter-btn:hover{border-color:var(--n);color:var(--n)}
+.filter-btn.active{border-color:var(--n);color:var(--n);background:rgba(0,255,136,.08)}
 
 /* ── CMS PANEL ─────────────────────────────────── */
 .cms-panel{display:flex;flex-direction:column;border-left:1px solid var(--border);overflow:hidden;background:var(--bg)}

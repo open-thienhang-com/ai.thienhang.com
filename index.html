@@ -22,6 +22,18 @@
     <!-- Council avatar bar (populated by renderCouncilBar) -->
     <div class="council-bar" id="councilBar"></div>
 
+    <!-- Filter bar -->
+    <div class="filter-bar" id="filterBar">
+      <span class="filter-label">// Lọc</span>
+      <button class="filter-btn active" data-filter="all"    onclick="setMsgFilter('all')">Tất cả</button>
+      <button class="filter-btn"        data-filter="nexus"  onclick="setMsgFilter('nexus')">◈ NEXUS</button>
+      <button class="filter-btn"        data-filter="schedule" onclick="setMsgFilter('schedule')">⏱ Lập lịch</button>
+      <button class="filter-btn"        data-filter="monitor"  onclick="setMsgFilter('monitor')">◉ Giám sát</button>
+      <button class="filter-btn"        data-filter="manage"   onclick="setMsgFilter('manage')">⬡ Quản lí</button>
+      <button class="filter-btn"        data-filter="proposal" onclick="setMsgFilter('proposal')">⬡ Proposals</button>
+      <button class="filter-btn"        data-filter="user"     onclick="setMsgFilter('user')">▷ Operator</button>
+    </div>
+
     <!-- Messages (populated by conversation.js) -->
     <div class="messages" id="messages"></div>
 
@@ -37,6 +49,8 @@
         <div class="input-tools">
           <button class="itool" onclick="insertPropose()">⬡ Propose</button>
           <button class="itool" id="cmsToggle" onclick="toggleCMS()">⊞ CMS</button>
+          <button class="itool schedule-upload" onclick="document.getElementById('scheduleFileInput').click()" title="Upload lịch để AI phân tích">📅 Upload Lịch</button>
+          <input type="file" id="scheduleFileInput" accept=".xlsx,.xls,.csv,.pdf,.json" style="display:none" onchange="handleScheduleUpload(this)">
           <button class="itool primary" onclick="sendUserMsg()">Send ↵</button>
         </div>
       </div>
