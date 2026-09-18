@@ -17,8 +17,7 @@ body::after{content:'';position:fixed;inset:0;background:repeating-linear-gradie
 body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(rgba(0,255,136,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,.02) 1px,transparent 1px);background-size:48px 48px;pointer-events:none;z-index:0}
 
 /* ── SHELL ─────────────────────────────────────── */
-.shell{display:grid;grid-template-columns:264px 1fr;height:100vh;position:relative;z-index:1;transition:grid-template-columns 350ms cubic-bezier(.4,0,.2,1)}
-.shell.cms-open{grid-template-columns:264px 1fr 460px}
+.shell{display:grid;grid-template-columns:264px 1fr;height:100vh;position:relative;z-index:1}
 
 /* ── LEFT PANEL ────────────────────────────────── */
 .lp{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;background:rgba(14,14,22,.8)}
@@ -92,6 +91,12 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .aname{font-size:9px;letter-spacing:.08em;text-transform:uppercase;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--fg)}
 .astatus{font-size:7px;letter-spacing:.08em;text-transform:uppercase;flex-shrink:0}
 .adot{width:5px;height:5px;border-radius:50%;flex-shrink:0;animation:pdot 2s infinite}
+
+/* manage/CMS row */
+.manage-cms-row{cursor:pointer}
+.manage-cms-row:hover .astatus{color:var(--e)!important}
+.agent-row.cms-active-row{border-color:rgba(204,68,255,.35)!important;background:rgba(204,68,255,.06)!important}
+.agent-row.cms-active-row .astatus{color:var(--e)!important;font-weight:700}
 
 /* session footer */
 .lp-foot{flex-shrink:0;padding:8px 12px;border-top:1px solid var(--border);background:rgba(10,10,15,.6)}
@@ -193,8 +198,8 @@ body::before{content:'';position:fixed;inset:0;background-image:linear-gradient(
 .filter-btn:hover{border-color:var(--n);color:var(--n)}
 .filter-btn.active{border-color:var(--n);color:var(--n);background:rgba(0,255,136,.08)}
 
-/* ── CMS PANEL ─────────────────────────────────── */
-.cms-panel{display:flex;flex-direction:column;border-left:1px solid var(--border);overflow:hidden;background:var(--bg)}
+/* ── CMS PANEL — full page ──────────────────────── */
+.cms-panel{position:fixed;inset:0;z-index:200;flex-direction:column;overflow:hidden;background:var(--bg);animation:min 200ms ease both}
 .cms-header{flex-shrink:0;height:44px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 14px;background:rgba(0,68,153,.08)}
 .cms-title{font-size:9px;letter-spacing:.2em;text-transform:uppercase;color:var(--d);display:flex;align-items:center;gap:6px}
 .cms-url{font-size:7px;color:var(--muted-fg);letter-spacing:.06em;font-family:'Share Tech Mono',monospace}

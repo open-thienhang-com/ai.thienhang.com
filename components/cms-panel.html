@@ -1,13 +1,16 @@
 <!-- ═══ CMS PANEL FRAGMENT ════════════════════════════════ -->
 <div class="cms-header">
-  <div>
-    <div class="cms-title">⊞ GHN CMS — Charger Management</div>
-    <div class="cms-url">ghn-cms.vercel.app · OCPP 1.6 · Live</div>
+  <div style="display:flex;align-items:center;gap:10px">
+    <button class="itool" onclick="toggleCMS()" style="border-color:rgba(204,68,255,.4);color:#cc44ff;gap:5px;display:flex;align-items:center">← Chat</button>
+    <div>
+      <div class="cms-title">⊞ GHN CMS — Charger Management</div>
+      <div class="cms-url">ghn-cms.vercel.app · OCPP 1.6 · Live</div>
+    </div>
   </div>
   <div class="cms-actions">
     <span class="badge bg-g">LIVE</span>
-    <button class="itool" onclick="reloadCMS()">↺</button>
-    <button class="itool" onclick="toggleCMS()">✕</button>
+    <button class="itool" onclick="reloadCMS()" title="Tải lại CMS">↺ Reload</button>
+    <button class="itool" onclick="toggleCMS()" style="border-color:rgba(255,51,102,.35);color:#ff3366">✕ Đóng</button>
   </div>
 </div>
 <div class="cms-loading" id="cmsLoading">
