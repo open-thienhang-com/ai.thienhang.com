@@ -177,6 +177,83 @@ export async function initConversation() {
   addSysMsg('Chờ phê duyệt từ GSVT · Tài xế đã nhận thông báo reroute dự kiến');
 }
 
+// ── SCHEDULE FILE ANALYSIS (MOCK) ───────────────────────────
+export async function analyzeSchedule(filename) {
+  const ext = filename.split('.').pop().toUpperCase();
+
+  addSysMsg(`📂 Đã nhận file: ${filename} · Lập lịch sạc đang phân tích...`);
+
+  // Parsing
+  addTyping('schedule');
+  await sleep(1800);
+  removeTyping('schedule');
+  await addMsg('schedule', 'all',
+    `Đã đọc file <strong style="color:#ffbb00">${filename}</strong> (${ext}). ` +
+    `Phát hiện <strong>12 chuyến xe</strong> trong ngày mai — đang so khớp với SOC hiện tại và năng lực trạm sạc...`, 0);
+
+  // Parsed schedule table
+  await sleep(600);
+  addTyping('schedule');
+  await sleep(1200);
+  removeTyping('schedule');
+  await addRichMsg('schedule',
+    'Lịch vận hành đã phân tích — 12 chuyến / 8 tuyến:',
+    makeTable('Lịch xe ngày mai', ['Xe', 'Xuất phát', 'Tuyến', 'Km ước tính', 'SOC cần', 'Trạm sạc DK', 'Trạng thái'], [
+      ['VF-01', '06:00', 'HCM → BD',   '84 km',  '55%', 'CP-02', `<span style="color:#00ff88">✓ Đủ pin</span>`],
+      ['VF-02', '06:30', 'HCM → LA',   '72 km',  '48%', 'CP-06', `<span style="color:#00ff88">✓ Đủ pin</span>`],
+      ['VF-03', '07:00', 'HCM → DN',   '120 km', '78%', 'CP-03', `<span style="color:#ffbb00">⚠ Cần kiểm tra</span>`],
+      ['VF-05', '07:30', 'BD → HCM',   '84 km',  '55%', '—',     `<span style="color:#00ff88">✓ Đủ pin</span>`],
+      ['VF-07', '08:00', 'HCM → TDM',  '60 km',  '40%', 'CP-07', `<span style="color:#00ff88">✓ Đủ pin</span>`],
+      ['VF-08', '08:30', 'HCM → BD',   '84 km',  '55%', 'CP-03', `<span style="color:#ff3366">✗ Xung đột trạm</span>`],
+      ['VF-11', '09:00', 'LA → HCM',   '72 km',  '48%', 'CP-06', `<span style="color:#ffbb00">⚠ SOC thấp</span>`],
+      ['VF-12', '13:00', 'HCM → VT',   '130 km', '85%', 'CP-01', `<span style="color:#ff3366">✗ Cần sạc trước</span>`],
+    ])
+  );
+
+  // Monitor checks SOC readiness
+  await sleep(700);
+  addTyping('monitor');
+  await sleep(1000);
+  removeTyping('monitor');
+  await addRichMsg('monitor',
+    'Kiểm tra SOC hiện tại vs yêu cầu từ lịch — phát hiện 3 xe cần chú ý:',
+    makeStats([
+      { label:'Sẵn sàng',    val:'7/12',  color:'#00ff88', sub:'SOC đủ cho tuyến' },
+      { label:'Cần sạc thêm', val:'3 xe', color:'#ffbb00', sub:'VF-03, VF-11, VF-12' },
+      { label:'Xung đột trạm', val:'2',   color:'#ff3366', sub:'VF-03 & VF-08 cùng CP-03' },
+      { label:'Phải sạc đêm', val:'1 xe', color:'#cc44ff', sub:'VF-12 cần 85% trước 13:00' },
+    ])
+  );
+
+  // Schedule agent resolves conflicts
+  await sleep(600);
+  addTyping('schedule');
+  await sleep(1400);
+  removeTyping('schedule');
+  await addRichMsg('schedule',
+    'Đã tối ưu lịch sạc — giải quyết 2 xung đột và phân bổ lại trạm:',
+    makeTable('Điều chỉnh đề xuất', ['Xe', 'Vấn đề', 'Hành động', 'Trạm mới', 'Tiết kiệm'], [
+      ['VF-03', 'Xung đột CP-03 với VF-08', 'Chuyển sang CP-07', 'CP-07 · 07:15', `<span style="color:#00ff88">−22 phút chờ</span>`],
+      ['VF-08', 'Xung đột CP-03 với VF-03', 'Giữ CP-03 · shift 30 phút', 'CP-03 · 09:00', `<span style="color:#00ff88">Tránh xếp hàng</span>`],
+      ['VF-11', 'SOC 19% — thiếu cho tuyến', 'Sạc đêm nay tại depot', 'Depot · 22:00', `<span style="color:#00ff88">SOC 85% lúc 06:00</span>`],
+      ['VF-12', 'Cần 85% trước 13:00', 'Bắt đầu sạc 06:30', 'CP-01 · 06:30', `<span style="color:#00ff88">Đủ SOC lúc 12:15</span>`],
+    ])
+  );
+
+  // Final proposal
+  await sleep(500);
+  addSysMsg('Lịch tối ưu sẵn sàng — Phê duyệt để áp dụng toàn bộ điều chỉnh');
+  addProposal('schedule', {
+    id: '#S-001',
+    title: `Áp dụng lịch sạc tối ưu từ ${filename} — 4 điều chỉnh`,
+    reasoning: '2 xung đột trạm giải quyết, VF-11 & VF-12 sạc đêm bổ sung. Tất cả xe đủ SOC đúng giờ.',
+    outcome: '12/12 xe sẵn sàng · 0 xung đột trạm · Tiết kiệm ước tính ₫340K chi phí diesel fallback',
+    risk: 'LOW',
+    confidence: 92,
+    votes: [{ id:'monitor', yes:true }, { id:'manage', yes:true }, { id:'schedule', yes:true }],
+  });
+}
+
 // ── LIVE SIMULATION ──────────────────────────────────────────
 export function addThinkingCycle() {
   const activeAgents = ['schedule', 'monitor', 'manage'];

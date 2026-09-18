@@ -22,6 +22,7 @@ export function addMsg(agentId, to, text, delay = 0) {
     const toA = to && to !== 'all' ? AGENTS[to] : null;
     const el  = document.createElement('div');
     el.className = `msg${agentId === 'nexus' ? ' right' : ''}`;
+    el.dataset.agent = agentId;
     const mention = toA
       ? `<span class="mention" style="color:${toA.color}">@${toA.name}</span> `
       : to === 'all' ? '<span class="mention" style="color:var(--muted-fg)">@All</span> ' : '';
@@ -76,6 +77,7 @@ export function addProposal(agentId, { id, title, reasoning, outcome, risk, conf
   const a  = AGENTS[agentId];
   const el = document.createElement('div');
   el.className = 'msg';
+  el.dataset.agent = agentId;
   const votesHtml = votes.map(v =>
     `<span class="vote-chip ${v.yes ? 'vote-yes' : v.abstain ? 'vote-abstain' : 'vote-no'}">
       ${v.yes ? '✓' : v.abstain ? '—' : '✗'} ${AGENTS[v.id]?.name || v.id}
@@ -127,6 +129,7 @@ export function addRichMsg(agentId, text, richHtml, delay = 0) {
     const a  = AGENTS[agentId];
     const el = document.createElement('div');
     el.className = 'msg';
+    el.dataset.agent = agentId;
     el.innerHTML = `
       <div class="msg-av" style="background:${a.bg};border-color:${a.border};color:${a.color}">${a.icon}</div>
       <div class="msg-body" style="max-width:90%;width:90%">
